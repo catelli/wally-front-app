@@ -1,23 +1,27 @@
 import { FiImage } from "react-icons/fi";
+import { WallyBBoxOverlay } from "@/components/WallyBBoxOverlay";
+import type { Detection } from "@/types/inference";
 
 interface AnnotatedPreviewProps {
-  annotatedSrc: string | null;
   previewSrc: string | null;
+  detection: Detection | null;
+  wallyFound: boolean;
   isLoading: boolean;
 }
 
 export function AnnotatedPreview({
-  annotatedSrc,
   previewSrc,
+  detection,
+  wallyFound,
   isLoading,
 }: AnnotatedPreviewProps) {
-  const src = annotatedSrc ?? previewSrc;
+  const showOverlay = Boolean(previewSrc && detection && wallyFound);
 
   return (
     <section className="preview-panel" aria-busy={isLoading}>
       <header className="preview-panel__header">
         <FiImage aria-hidden />
-        <h2>{annotatedSrc ? "Resultado anotado" : "Pré-visualização"}</h2>
+        <h2>{showOverlay ? "Wally encontrado" : "Pré-visualização"}</h2>
       </header>
 
       <div className="preview-panel__frame" data-testid="wally-preview-frame">
@@ -26,14 +30,16 @@ export function AnnotatedPreview({
             <span className="preview-panel__spinner" aria-hidden />
             <p>Procurando Wally…</p>
           </div>
-        ) : src ? (
+        ) : showOverlay && previewSrc ? (
+          <WallyBBoxOverlay
+            imageSrc={previewSrc}
+            detection={detection}
+            alt="Imagem com a localização do Wally destacada"
+          />
+        ) : previewSrc ? (
           <img
-            src={src}
-            alt={
-              annotatedSrc
-                ? "Imagem com caixas de detecção do Wally"
-                : "Pré-visualização da imagem enviada"
-            }
+            src={previewSrc}
+            alt="Pré-visualização da imagem enviada"
             className="preview-panel__image"
             data-testid="wally-preview-image"
           />

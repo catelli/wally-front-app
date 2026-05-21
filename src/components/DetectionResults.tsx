@@ -1,21 +1,27 @@
-import { FiCheckCircle, FiCrosshair } from "react-icons/fi";
+import { FiCheckCircle, FiCrosshair, FiXCircle } from "react-icons/fi";
 import type { Detection } from "@/types/inference";
 
 interface DetectionResultsProps {
-  detections: Detection[];
+  detection: Detection | null;
+  wallyFound: boolean;
   requestId: string | null;
 }
 
-export function DetectionResults({ detections, requestId }: DetectionResultsProps) {
-  const count = detections.length;
-
+export function DetectionResults({
+  detection,
+  wallyFound,
+  requestId,
+}: DetectionResultsProps) {
   return (
     <aside className="results-panel" data-testid="wally-results-panel">
       <header className="results-panel__header">
         <FiCrosshair aria-hidden />
-        <h2>Detecções</h2>
-        <span className="results-panel__badge" data-testid="wally-results-count">
-          {count}
+        <h2>Resultado</h2>
+        <span
+          className={`results-panel__badge ${wallyFound ? "results-panel__badge--found" : "results-panel__badge--miss"}`}
+          data-testid="wally-results-count"
+        >
+          {wallyFound ? "1" : "0"}
         </span>
       </header>
 
@@ -26,31 +32,25 @@ export function DetectionResults({ detections, requestId }: DetectionResultsProp
         </p>
       ) : null}
 
-      {count === 0 ? (
+      {!wallyFound || !detection ? (
         <p className="results-panel__empty" data-testid="wally-results-empty">
+          <FiXCircle aria-hidden className="results-panel__empty-icon" />
           Nenhum Wally encontrado nesta imagem.
         </p>
       ) : (
-        <ul className="results-panel__list">
-          {detections.map((detection, index) => (
-            <li
-              key={`${detection.x1}-${detection.y1}-${detection.confidence}-${index}`}
-              className="results-panel__item"
-              data-testid={`wally-results-item-${index}`}
-            >
-              <FiCheckCircle aria-hidden className="results-panel__item-icon" />
-              <div>
-                <span className="results-panel__confidence">
-                  {(detection.confidence * 100).toFixed(1)}%
-                </span>
-                <span className="results-panel__coords">
-                  ({Math.round(detection.x1)}, {Math.round(detection.y1)}) → (
-                  {Math.round(detection.x2)}, {Math.round(detection.y2)})
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="results-panel__highlight" data-testid="wally-results-primary">
+          <FiCheckCircle aria-hidden className="results-panel__item-icon" />
+          <div>
+            <p className="results-panel__title">Localização do Wally</p>
+            <span className="results-panel__confidence">
+              Confiança {(detection.confidence * 100).toFixed(1)}%
+            </span>
+            <span className="results-panel__coords">
+              ({Math.round(detection.bbox.x1)}, {Math.round(detection.bbox.y1)}) → (
+              {Math.round(detection.bbox.x2)}, {Math.round(detection.bbox.y2)})
+            </span>
+          </div>
+        </div>
       )}
     </aside>
   );

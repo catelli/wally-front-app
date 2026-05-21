@@ -1,5 +1,5 @@
 import { getApiBaseUrl } from "@/api/client";
-import type { ApiErrorBody, InferenceResponse } from "@/types/inference";
+import type { ApiErrorBody, Detection, InferenceResponse } from "@/types/inference";
 
 export class InferenceApiError extends Error {
   readonly status: number;
@@ -30,6 +30,47 @@ function parseErrorMessage(body: ApiErrorBody, status: number): string {
   return "Não foi possível processar a imagem.";
 }
 
+interface ApiDetectionPayload {
+  class_id: number;
+  label: string;
+  confidence: number;
+  bbox: Detection["bbox"];
+}
+
+interface ApiInferencePayload {
+  request_id: string;
+  wally_found?: boolean;
+  detection_count: number;
+  detections: ApiDetectionPayload[];
+  annotated_image: {
+    data_base64: string;
+    content_type?: string;
+    media_type?: string;
+  };
+}
+
+function normalizeResponse(payload: ApiInferencePayload): InferenceResponse {
+  const detections: Detection[] = payload.detections.map((item) => ({
+    class_id: item.class_id,
+    label: item.label,
+    confidence: item.confidence,
+    bbox: item.bbox,
+  }));
+
+  return {
+    request_id: payload.request_id,
+    wally_found: payload.wally_found ?? detections.length > 0,
+    detection_count: payload.detection_count,
+    detections,
+    annotated_image: {
+      data_base64: payload.annotated_image.data_base64,
+      content_type: payload.annotated_image.content_type,
+      media_type:
+        payload.annotated_image.media_type ?? payload.annotated_image.content_type,
+    },
+  };
+}
+
 export async function runInference(file: File): Promise<InferenceResponse> {
   const base = getApiBaseUrl();
   const url = `${base}/api/v1/inference`;
@@ -52,9 +93,19 @@ export async function runInference(file: File): Promise<InferenceResponse> {
     throw new InferenceApiError(message, response.status);
   }
 
-  return (await response.json()) as InferenceResponse;
+  const payload = (await response.json()) as ApiInferencePayload;
+  return normalizeResponse(payload);
 }
 
 export function toAnnotatedImageSrc(dataBase64: string, mediaType = "image/jpeg"): string {
   return `data:${mediaType};base64,${dataBase64}`;
+}
+
+export function getPrimaryDetection(detections: Detection[]): Detection | null {
+  if (detections.length === 0) {
+    return null;
+  }
+  return detections.reduce((best, current) =>
+    current.confidence > best.confidence ? current : best,
+  );
 }

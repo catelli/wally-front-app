@@ -8,8 +8,8 @@ export function App() {
   const {
     file,
     previewUrl,
-    annotatedSrc,
-    detections,
+    detection,
+    wallyFound,
     requestId,
     error,
     isLoading,
@@ -30,7 +30,7 @@ export function App() {
           </div>
         </div>
         <p className="app__subtitle">
-          Envie uma cena completa e receba a imagem anotada com as detecções do modelo em tiles.
+          Envie uma cena completa e veja exatamente onde o Wally está — uma única marcação na imagem.
         </p>
       </header>
 
@@ -66,7 +66,7 @@ export function App() {
               {isLoading ? "Analisando…" : "Encontrar Wally"}
             </button>
 
-            {(file || annotatedSrc) && !isLoading ? (
+            {(file || detection) && !isLoading ? (
               <button
                 type="button"
                 className="button button--ghost"
@@ -79,12 +79,17 @@ export function App() {
             ) : null}
           </div>
 
-          <DetectionResults detections={detections} requestId={requestId} />
+          <DetectionResults
+            detection={detection}
+            wallyFound={wallyFound}
+            requestId={requestId}
+          />
         </section>
 
         <AnnotatedPreview
-          annotatedSrc={annotatedSrc}
           previewSrc={previewUrl}
+          detection={detection}
+          wallyFound={wallyFound}
           isLoading={isLoading}
         />
       </main>
