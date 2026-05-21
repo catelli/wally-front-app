@@ -1,0 +1,57 @@
+---
+description: Contexto do Wally Front App e integração com detecção Wally
+alwaysApply: true
+---
+
+# Wally Front App
+
+Frontend para **enviar imagens** (páginas completas de livro *Where's Wally*) a uma API de inferência e **exibir detecções** do personagem Wally.
+
+## Escopo
+
+- Foco em upload, feedback de progresso/erro e visualização de bounding boxes na imagem.
+- Não implementar treinamento YOLO nem pipelines Python aqui — isso vive em `../wally-ai-training` (`wally-ai-search`, CLI `wally-ai`).
+- Manter diffs pequenos; não adicionar dependências ou features fora do pedido.
+
+## Stack recomendada (projeto greenfield)
+
+- **React 18+** + **TypeScript** + **Vite**
+- **Ultracite** (Biome) para lint/format — ver `.cursor/rules/ultracite-standards.mdc`
+- **react-icons** para todos os ícones da interface (nunca emoji, SVG inline solto ou outra lib de ícones)
+- Estilização: CSS Modules ou Tailwind (escolher um e manter consistente)
+- Variável de ambiente: `VITE_API_BASE_URL` (nunca commitar `.env` com segredos)
+
+## UI (sempre respeitar)
+
+- **Antes de criar UI nova**, ler componentes, tokens (cores, espaçamento, tipografia) e estilos já existentes no projeto.
+- Reutilizar componentes e padrões visuais existentes; não introduzir layout, cores ou tipografia diferentes sem pedido explícito.
+- Manter consistência: mesmos tamanhos de botão, radius, sombras, estados (hover/focus/disabled/loading) e feedback de erro em toda a app.
+- Ícones **somente** via `react-icons` (import por subpacote, ex.: `react-icons/fi`, `react-icons/hi2`).
+- Botões só com ícone devem ter `aria-label`; ícones decorativos usam `aria-hidden`.
+
+## Qualidade de código
+
+- Antes de commitar: `npm exec -- ultracite fix` e `npm exec -- ultracite check`
+- Seguir regras Ultracite em `**/*.{ts,tsx,js,jsx}` (a11y, TS, React, testes)
+
+## Domínio (wally-ai-training)
+
+- Classe única: `0` = wally
+- Inferência em cenas grandes usa **tiled inference** (tiles 256×256, overlap típico 64)
+- Caixas em coordenadas **pixel absolutas** da imagem original: `x1, y1, x2, y2` + `confidence`
+
+## Estrutura de pastas sugerida
+
+```text
+src/
+  components/     # UI (upload, preview, canvas de boxes)
+  api/            # cliente HTTP e tipos da API
+  hooks/          # lógica reutilizável (upload, detecção)
+  types/          # Detection, ApiError, etc.
+  lib/            # helpers (validação de arquivo, desenho de boxes)
+```
+
+## Comunicação
+
+- Respostas ao usuário em **português** quando ele escrever em português.
+- Código, nomes de variáveis, commits e comentários técnicos em **inglês**.

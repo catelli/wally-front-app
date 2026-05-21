@@ -1,0 +1,81 @@
+---
+description: Padrões React/TypeScript para UI do Wally Front App
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+# React e TypeScript
+
+## UI e react-icons (obrigatório)
+
+- Respeitar a UI existente: classes, variáveis CSS/Tailwind, componentes em `src/components/` e qualquer design system do repo.
+- Não misturar bibliotecas de ícones (Lucide, Heroicons package, SVG manual) — usar **apenas** `react-icons`.
+- Importar de subpacotes para tree-shaking:
+
+```tsx
+// ✅ GOOD
+import { FiUpload, FiAlertCircle } from "react-icons/fi";
+
+// ❌ BAD
+import * as Icons from "react-icons/fi";
+import { FiUpload } from "react-icons";
+```
+
+- Tamanho consistente (ex.: `className="h-5 w-5"` ou token do projeto); mesma família de ícones na tela (ex.: Feather `fi` ou Heroicons `hi2`, não misturar sem motivo).
+- Ícone + texto: ícone à esquerda do label, alinhado verticalmente ao texto.
+- Loading: `FiLoader` (ou equivalente) com animação de spin na classe CSS do projeto, não texto “...” sozinho.
+
+```tsx
+// ✅ GOOD — botão só ícone acessível
+<button type="button" aria-label="Enviar imagem">
+  <FiUpload aria-hidden className="h-5 w-5" />
+</button>
+
+// ✅ GOOD — ícone decorativo ao lado de texto
+<span className="flex items-center gap-2">
+  <FiImage aria-hidden className="h-4 w-4" />
+  Pré-visualização
+</span>
+```
+
+## Componentes
+
+- Componentes funcionais; lógica de upload/detecção em **custom hooks** (`useImageUpload`, `useDetection`).
+- Props tipadas com `interface` ou `type`; evitar `any`.
+- Um componente por arquivo; nome do arquivo em PascalCase (`DetectionOverlay.tsx`).
+
+## Estado e efeitos
+
+- Estado de UI local (`previewUrl`, `isLoading`) no componente ou hook.
+- `useEffect` só para side effects reais (revogar `URL.createObjectURL` no cleanup).
+
+```tsx
+// ✅ GOOD — cleanup de object URL
+useEffect(() => {
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  setPreviewUrl(url);
+  return () => URL.revokeObjectURL(url);
+}, [file]);
+```
+
+## Upload de imagem
+
+- Aceitar apenas `image/jpeg`, `image/png`, `image/webp`.
+- Validar tamanho máximo no cliente (ex.: 15 MB) antes do `fetch`.
+- Usar `<input type="file" accept="image/jpeg,image/png,image/webp" />` + drag-and-drop opcional.
+
+## Overlay de detecções
+
+- Desenhar boxes sobre a imagem com `<canvas>` ou SVG absoluto sobre o preview.
+- Escalar coordenadas da API (`x1..y2` em pixels da imagem original) para o tamanho exibido:
+
+```ts
+const scaleX = displayWidth / naturalWidth;
+const scaleY = displayHeight / naturalHeight;
+```
+
+## Acessibilidade e UX
+
+- Botão de envio com `disabled` e `aria-busy` durante inferência.
+- Mensagens de erro legíveis (rede, 413, 422, 5xx); não expor stack trace na UI.

@@ -1,0 +1,62 @@
+---
+description: Cliente HTTP e contrato da API de detecção Wally
+globs: "{src/api/**,src/lib/**,src/hooks/**,src/types/**}"
+alwaysApply: false
+---
+
+# Integração com API
+
+## Configuração
+
+- Base URL: `import.meta.env.VITE_API_BASE_URL` (fallback `http://localhost:8000` em dev).
+- Centralizar em `src/api/client.ts`; componentes não chamam `fetch` direto.
+
+## Upload
+
+- `POST /api/v1/inference` com `multipart/form-data`.
+- Campo do arquivo: **`file`** (não `image`).
+
+```ts
+const form = new FormData();
+form.append("file", file, file.name);
+const res = await fetch(`${baseUrl}/api/v1/inference`, { method: "POST", body: form });
+```
+
+## Tipos de resposta (wally-finder-api)
+
+```ts
+export interface Detection {
+  class_id: number;
+  confidence: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface InferenceResponse {
+  request_id: string;
+  detections: Detection[];
+  annotated_image: { data_base64: string; media_type?: string };
+}
+```
+
+Imagem anotada: `data:image/jpeg;base64,${annotated_image.data_base64}`.
+
+Alternativa: `?response_format=image` retorna JPEG bruto (headers `X-Request-Id`, `X-Detection-Count`).
+
+## Tratamento de erros
+
+- Parsear JSON de erro quando `Content-Type` for `application/json`.
+- Mapear status: `400/422` → validação; `413` → arquivo grande; `502/503` → serviço indisponível.
+- Nunca logar API keys em console ou UI.
+
+## Segurança
+
+- Não commitar `.env`, tokens ou URLs internas de produção.
+- Preferir proxy do Vite em dev se a API não tiver CORS:
+
+```ts
+// vite.config.ts — proxy /api → backend
+server: { proxy: { "/api": { target: "http://localhost:8000", changeOrigin: true } } }
+```
