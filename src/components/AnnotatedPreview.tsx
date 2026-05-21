@@ -4,24 +4,28 @@ import type { Detection } from "@/types/inference";
 
 interface AnnotatedPreviewProps {
   previewSrc: string | null;
-  detection: Detection | null;
+  detections: Detection[];
   wallyFound: boolean;
   isLoading: boolean;
 }
 
 export function AnnotatedPreview({
   previewSrc,
-  detection,
+  detections,
   wallyFound,
   isLoading,
 }: AnnotatedPreviewProps) {
-  const showOverlay = Boolean(previewSrc && detection && wallyFound);
+  const showOverlay = Boolean(previewSrc && wallyFound && detections.length > 0);
 
   return (
     <section className="preview-panel" aria-busy={isLoading}>
       <header className="preview-panel__header">
         <FiImage aria-hidden />
-        <h2>{showOverlay ? "Wally encontrado" : "Pré-visualização"}</h2>
+        <h2>
+          {showOverlay
+            ? `Top ${detections.length} localizações`
+            : "Pré-visualização"}
+        </h2>
       </header>
 
       <div className="preview-panel__frame" data-testid="wally-preview-frame">
@@ -33,8 +37,8 @@ export function AnnotatedPreview({
         ) : showOverlay && previewSrc ? (
           <WallyBBoxOverlay
             imageSrc={previewSrc}
-            detection={detection}
-            alt="Imagem com a localização do Wally destacada"
+            detections={detections}
+            alt="Imagem com as principais localizações possíveis do Wally"
           />
         ) : previewSrc ? (
           <img

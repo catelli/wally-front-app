@@ -532,3 +532,40 @@ input {
   line-height: 1.2;
   white-space: nowrap;
 }
+
+.bbox-overlay__box--alt2 {
+  border-color: #f59e0b;
+}
+
+.bbox-overlay__box--alt2 .bbox-overlay__label {
+  background: #f59e0b;
+}
+
+.bbox-overlay__box--alt3 {
+  border-color: #38bdf8;
+}
+
+.bbox-overlay__box--alt3 .bbox-overlay__label {
+  background: #38bdf8;
+}
+
+.bbox-overlay__box--alt4 {
+  border-color: #a78bfa;
+}
+
+.bbox-overlay__box--alt4 .bbox-overlay__label {
+  background: #a78bfa;
+}
+
+.results-panel__item--primary {
+  border: 1px solid rgb(52 211 153 / 35%);
+  background: rgb(52 211 153 / 10%);
+}
+
+.results-panel__rank {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--color-accent-hover);
+  margin-bottom: var(--space-1);
+}

@@ -8,7 +8,7 @@ export function App() {
   const {
     file,
     previewUrl,
-    detection,
+    detections,
     wallyFound,
     requestId,
     error,
@@ -30,7 +30,7 @@ export function App() {
           </div>
         </div>
         <p className="app__subtitle">
-          Envie uma cena completa e veja exatamente onde o Wally está — uma única marcação na imagem.
+          Envie uma cena completa e veja as 4 melhores possibilidades de onde o Wally está.
         </p>
       </header>
 
@@ -66,7 +66,7 @@ export function App() {
               {isLoading ? "Analisando…" : "Encontrar Wally"}
             </button>
 
-            {(file || detection) && !isLoading ? (
+            {(file || detections.length > 0) && !isLoading ? (
               <button
                 type="button"
                 className="button button--ghost"
@@ -80,7 +80,7 @@ export function App() {
           </div>
 
           <DetectionResults
-            detection={detection}
+            detections={detections}
             wallyFound={wallyFound}
             requestId={requestId}
           />
@@ -88,7 +88,7 @@ export function App() {
 
         <AnnotatedPreview
           previewSrc={previewUrl}
-          detection={detection}
+          detections={detections}
           wallyFound={wallyFound}
           isLoading={isLoading}
         />

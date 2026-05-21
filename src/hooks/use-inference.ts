@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getPrimaryDetection, InferenceApiError, runInference } from "@/api/inference";
+import { InferenceApiError, runInference } from "@/api/inference";
 import { validateImageFile } from "@/lib/validate-image";
 import type { Detection, InferenceResponse } from "@/types/inference";
 
@@ -9,7 +9,7 @@ interface InferenceState {
   status: InferenceStatus;
   file: File | null;
   previewUrl: string | null;
-  detection: Detection | null;
+  detections: Detection[];
   wallyFound: boolean;
   requestId: string | null;
   error: string | null;
@@ -19,7 +19,7 @@ const initialState: InferenceState = {
   status: "idle",
   file: null,
   previewUrl: null,
-  detection: null,
+  detections: [],
   wallyFound: false,
   requestId: null,
   error: null,
@@ -68,19 +68,18 @@ export function useInference() {
       ...prev,
       status: "loading",
       error: null,
-      detection: null,
+      detections: [],
       wallyFound: false,
       requestId: null,
     }));
 
     try {
       const result: InferenceResponse = await runInference(state.file);
-      const detection = getPrimaryDetection(result.detections);
       setState((prev) => ({
         ...prev,
         status: "success",
-        detection,
-        wallyFound: result.wally_found && detection !== null,
+        detections: result.detections,
+        wallyFound: result.wally_found && result.detections.length > 0,
         requestId: result.request_id,
       }));
     } catch (error) {
